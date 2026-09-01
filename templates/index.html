@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>DeployLens</title>
+
+        <link rel="stylesheet" href="/static/styles.css">
+    </head>
+
+    <body>
+        <main>
+            <h1>DeployLens</h1>
+            <p>Deployment visibility without the noise</p>
+
+            <div id="filters">
+                <button data-environment="all">All</button>
+                <button data-environment="prod">Prod</button>
+                <button data-environment="test4">Test4</button>
+                <button data-environment="stage">Stage</button>
+            </div>
+
+            <label >
+                <input type="checkbox" id="only-degraded">
+                Only degraded
+            </label>
+
+            <form id="deployment-form">
+                <input
+                    type="text"
+                    id="service"
+                    placeholder="Service name"
+                    required
+                >
+
+                <select id="environment" required>
+                    <option value="prod">Prod</option>
+                    <option value="test4">Test4</option>
+                    <option value="stage">Stage</option>
+                </select>
+
+                <input
+                    type="text"
+                    id="version"
+                    placeholder="Version"
+                    required
+                >
+
+                <select id="status" required>
+                    <option value="healthy">Healthy</option>
+                    <option value="degraded">Degraded</option>
+                </select>
+
+                <button type="submit">
+                    Register deployment
+                </button>
+
+                <button type="button" id="cancel-edit" hidden>
+                    Cancel
+                </button>
+            </form>
+
+
+            <section id="deployments"></section>
+        </main>
+
+        <script src="/static/app.js"></script>
+    </body>
+</html>
