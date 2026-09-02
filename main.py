@@ -1,3 +1,4 @@
+from email.charset import QP
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,8 +32,14 @@ def home(request: Request):
         context={}
     )
 
-@app.get("/health")
-def health():
+@app.get("/live")
+def liveness():
+    return {
+        "status": "alive"
+    }
+
+@app.get("/ready")
+def readyness():
     connection = None
 
     try:
@@ -43,16 +50,16 @@ def health():
         ).fetchone()
 
         return {
-            "status": "healthy",
+            "status": "ready",
             "database": "reachable"
         }
 
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="Database is unavailable"
+            detail="Aplication not ready"
         )
-
+    
     finally:
         if connection:
             connection.close()

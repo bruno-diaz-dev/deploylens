@@ -216,12 +216,18 @@ def test_empty_service():
 
     assert response.status_code == 422
 
-def test_health():
-    response = client.get("/health")
+def test_liveness():
+    response = client.get("/live")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "alive"
+
+def test_readiness():
+    response = client.get("/ready")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    assert data["status"] == "healthy"
+    assert data["status"] == "ready"
     assert data["database"] == "reachable"
