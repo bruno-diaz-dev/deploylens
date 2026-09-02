@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from database import create_database
+from database import create_database, get_connection
 from routes.deployments import router as deployments_router
 
 
@@ -30,3 +30,29 @@ def home(request: Request):
         name="index.html",
         context={}
     )
+
+@app.get("/health")
+def health():
+    connection = None
+
+    try:
+        connection = get_connection()
+
+        connection.execute(
+            "SELECT 1 FROM deployments LIMIT 1"
+        ).fetchone()
+
+        return {
+            "status": "healthy",
+            "database": "reachable"
+        }
+
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Database is unavailable"
+        )
+
+    finally:
+        if connection:
+            connection.close()
