@@ -7,6 +7,7 @@ async function loadDeployments() {
     const response = await fetch("/api/deployments");
     allDeployments = await response.json();
 
+    updateSummary(allDeployments);
     applyFilters();
 }
 
@@ -16,6 +17,10 @@ function renderDeployments(deployments) {
     container.innerHTML = "";
 
     for (const deployment of deployments) {
+        const createdAt = deployment.created_at
+        ? new Date(deployment.created_at).toLocaleString()
+        : "Unknown";
+
         const card = document.createElement("article");
 
         const statusClass =
@@ -30,6 +35,7 @@ function renderDeployments(deployments) {
             <p>Environment: ${deployment.environment}</p>
             <p>Version: ${deployment.version}</p>
             <p>Status: ${deployment.status}</p>
+            <p><strong>Deployed:</strong> ${createdAt}</p>
 
             <button class="edit-button" data-id="${deployment.id}">Edit</button>
 
@@ -68,6 +74,27 @@ function renderDeployments(deployments) {
             }
         });
     }
+}
+
+function updateSummary(deployments) {
+    const total = deployments.length;
+
+    const healthy = deployments.filter(
+        deployment => deployment.status === "healthy"
+    ).length;
+
+    const degraded = deployments.filter(
+        deployment => deployment.status === "degraded"
+    ).length;
+
+    const prod = deployments.filter(
+        deployment => deployment.environment === "prod"
+    ).length;
+
+    document.querySelector("#total-count").textContent = total;
+    document.querySelector("#healthy-count").textContent = healthy;
+    document.querySelector("#degraded-count").textContent = degraded;
+    document.querySelector("#prod-count").textContent = prod;
 }
 
 const filterButtons = document.querySelectorAll("#filters button");

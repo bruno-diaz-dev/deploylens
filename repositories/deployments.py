@@ -1,5 +1,5 @@
 from database import get_connection
-
+from datetime import datetime, timezone
 
 def get_all_deployments():
     connection = get_connection()
@@ -15,22 +15,26 @@ def get_all_deployments():
 def create_deployment(deployment):
     connection = get_connection()
 
+    created_at = datetime.now(timezone.utc).isoformat()
+
     cursor = connection.execute(
         """
         INSERT INTO deployments (
             service,
             environment,
             version,
-            status
+            status,
+            created_at
         )
 
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
             deployment.service,
             deployment.environment,
             deployment.version,
-            deployment.status
+            deployment.status,
+            created_at
         )
     )
 
@@ -41,7 +45,8 @@ def create_deployment(deployment):
         "service": deployment.service,
         "environment": deployment.environment,
         "version": deployment.version,
-        "status": deployment.status
+        "status": deployment.status,
+        "created_at": created_at
     }
 
     connection.close()

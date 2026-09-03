@@ -42,6 +42,9 @@ def test_create_deployment():
 
     data = response.json()
 
+    assert "created_at" in data
+    assert data["created_at"] is not None
+
     assert data["service"] == "payments-api"
     assert data["environment"] == "prod"
     assert data["version"] == "1.0.0"

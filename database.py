@@ -21,9 +21,24 @@ def create_database():
             service TEXT NOT NULL,
             environment TEXT NOT NULL,
             version TEXT NOT NULL,
-            status TEXT NOT NULL
+            status TEXT NOT NULL,
+            created_at TEXT
         )
     """)
+
+    columns = connection.execute(
+        "PRAGMA table_info(deployments)"
+    ).fetchall()
+
+    column_names = [
+        column["name"]
+        for column in columns
+    ]
+
+    if "created_at" not in column_names:
+        connection.execute(
+            "ALTER TABLE deployments ADD COLUMN created_at TEXT"
+        )
 
     connection.commit()
     connection.close()

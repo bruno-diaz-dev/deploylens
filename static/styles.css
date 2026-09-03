@@ -51,3 +51,33 @@ main {
     border-radius: 6px;
     cursor: pointer;
 }
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    padding: 1.25rem;
+    border: 1px solid #333;
+    border-radius: 10px;
+}
+
+.summary-card span {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card strong {
+    font-size: 2rem;
+}
+
+@media (max-width: 700px) {
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
