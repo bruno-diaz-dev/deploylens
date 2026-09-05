@@ -5,7 +5,18 @@ def get_all_deployments():
     connection = get_connection()
 
     rows = connection.execute(
-        "SELECT * FROM deployments"
+        """
+        SELECT
+            d.*,
+            (
+                SELECT h.created_at
+                FROM deployment_history h
+                WHERE h.deployment_id = d.id
+                ORDER BY h.created_at DESC
+                LIMIT 1
+            ) AS last_deployed_at
+        FROM deployments d
+        """
     ).fetchall()
 
     connection.close()

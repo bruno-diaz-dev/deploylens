@@ -324,3 +324,51 @@ def test_get_deployment_history():
     assert len(history) == 2
     assert history[0]["version"] == "1.1.0"
     assert history[1]["version"] == "1.0.0"
+
+def test_last_deployed():
+    deployment = {
+        "service": "orders-api",
+        "environment": "prod",
+        "version": "2.1.4",
+        "status": "healthy"
+    }
+
+    create_response = client.post(
+        "/api/deployments",
+        json=deployment
+    )
+
+    deployment_id = create_response.json()["id"]
+
+    updated_deployment = {
+        "service": "orders-api",
+        "environment": "prod",
+        "version": "2.2.0",
+        "status": "healthy"
+    }
+
+    client.put(
+        f"/api/deployments/{deployment_id}",
+        json=updated_deployment
+    )
+
+    deployments_response = client.get(
+        "/api/deployments"
+    )
+
+    deployments = deployments_response.json()
+
+    current_deployment = next(
+        deployment
+        for deployment in deployments
+        if deployment["id"] == deployment_id
+    )
+
+    history_response = client.get(
+        f"/api/deployments/{deployment_id}/history"
+    )
+
+    history = history_response.json()
+    
+    assert current_deployment["last_deployed_at"] is not None
+    assert current_deployment["last_deployed_at"] == history[0]["created_at"]

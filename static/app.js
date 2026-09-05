@@ -21,6 +21,10 @@ function renderDeployments(deployments) {
         ? new Date(deployment.created_at).toLocaleString()
         : "Unknown";
 
+        const lastDeployedAt = deployment.last_deployed_at
+        ? new Date(deployment.last_deployed_at).toLocaleString()
+        : "Unknown";
+
         const card = document.createElement("article");
 
         const statusClass =
@@ -36,6 +40,7 @@ function renderDeployments(deployments) {
             <p>Version: ${deployment.version}</p>
             <p>Status: ${deployment.status}</p>
             <p><strong>Registered:</strong> ${createdAt}</p>
+            <p><strong>Last deployed</strong> ${lastDeployedAt}</p>
 
             <div class ="deployment-actions">
                 <button
