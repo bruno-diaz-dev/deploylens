@@ -14,7 +14,7 @@
             <h1>DeployLens</h1>
             <p>Deployment visibility without the noise</p>
 
-            <section id=""summary" class="summary">
+            <section id="summary" class="summary">
                 <article class="summary-card">
                     <span>Total deployments</span>
                     <strong id="total-count">0</strong>
@@ -36,55 +36,65 @@
                 </article>
             </section>
 
-            <div id="filters">
-                <button data-environment="all">All</button>
-                <button data-environment="prod">Prod</button>
-                <button data-environment="test4">Test4</button>
-                <button data-environment="stage">Stage</button>
-            </div>
+            <section class="controls">
 
-            <label >
-                <input type="checkbox" id="only-degraded">
-                Only degraded
-            </label>
+                <div class="filters-group">
 
-            <form id="deployment-form">
-                <input
-                    type="text"
-                    id="service"
-                    placeholder="Service name"
-                    required
-                >
+                    <div id="filters">
+                        <button data-environment="all">All</button>
+                        <button data-environment="prod">Prod</button>
+                        <button data-environment="test4">Test4</button>
+                        <button data-environment="stage">Stage</button>
+                    </div>
 
-                <select id="environment" required>
-                    <option value="prod">Prod</option>
-                    <option value="test4">Test4</option>
-                    <option value="stage">Stage</option>
-                </select>
+                    <label class="degraded-filter">
+                        <input type="checkbox" id="only-degraded">
+                        Only degraded
+                    </label>
 
-                <input
-                    type="text"
-                    id="version"
-                    placeholder="Version"
-                    required
-                >
+                </div>
 
-                <select id="status" required>
-                    <option value="healthy">Healthy</option>
-                    <option value="degraded">Degraded</option>
-                </select>
+                <form id="deployment-form" class="deployment-form">
 
-                <button type="submit">
-                    Register deployment
-                </button>
+                    <input
+                        type="text"
+                        id="service"
+                        placeholder="Service name"
+                        required
+                    >
 
-                <button type="button" id="cancel-edit" hidden>
-                    Cancel
-                </button>
-            </form>
+                    <select id="environment" required>
+                        <option value="prod">Prod</option>
+                        <option value="test4">Test4</option>
+                        <option value="stage">Stage</option>
+                    </select>
 
+                    <input
+                        type="text"
+                        id="version"
+                        placeholder="Version"
+                        required
+                    >
+
+                    <select id="status" required>
+                        <option value="healthy">Healthy</option>
+                        <option value="degraded">Degraded</option>
+                    </select>
+
+                    <button type="submit">
+                        Register deployment
+                    </button>
+
+                    <button type="button" id="cancel-edit" hidden>
+                        Cancel
+                    </button>
+
+                </form>
+
+            </section>
 
             <section id="deployments"></section>
+
         </main>
 
         <script src="/static/app.js"></script>

@@ -5,7 +5,8 @@ from repositories.deployments import (
     get_all_deployments,
     create_deployment,
     update_deployment,
-    delete_deployment
+    delete_deployment,
+    get_deployment_history
 )
 
 router = APIRouter(
@@ -53,3 +54,7 @@ def delete_existing_deployment(deployment_id: int):
         "message": "Deployment deleted",
         "id": deployment_id
     }
+
+@router.get("/{deployment_id}/history")
+def get_history(deployment_id: int):
+    return get_deployment_history(deployment_id)

@@ -1,8 +1,10 @@
+from math import prod
 import os
 from pathlib import Path
 from annotated_types import IsInfinite
 import pytest
 from database import get_connection
+from repositories.deployments import update_deployment
 
 TEST_DB = "test_deploylens.db"
 
@@ -21,6 +23,7 @@ client = TestClient(app)
 def clean_database():
     connection = get_connection()
 
+    connection.execute("DELETE FROM deployment_history")
     connection.execute("DELETE FROM deployments")
     connection.commit()
     connection.close()
@@ -234,3 +237,90 @@ def test_readiness():
 
     assert data["status"] == "ready"
     assert data["database"] == "reachable"
+
+def test_update_creates_history_entry():
+    deployment = {
+        "service": "orders-api",
+        "environment":"prod",
+        "version": "1.0.0",
+        "status": "healthy"
+    }
+
+    create_response = client.post(
+        "/api/deployments",
+        json=deployment
+    )
+
+    deployment_id = create_response.json()["id"]
+
+    updated_deployment = {
+        "service": "orders-api",
+        "environment": "prod",
+        "version": "1.1.0",
+        "status": "healthy"
+    }
+
+    response = client.put(
+        f"/api/deployments/{deployment_id}",
+        json=updated_deployment
+    )
+
+    assert response.status_code == 200
+
+    connection = get_connection()
+
+    history = connection.execute(
+        """
+        SELECT *
+        FROM deployment_history
+        WHERE deployment_id = ?
+        ORDER BY id
+        """,
+        (deployment_id,)
+    ).fetchall()
+
+    connection.close()
+
+    assert len(history) == 2
+    assert history[0]["version"] == "1.0.0"
+    assert history[1]["version"] == "1.1.0"
+
+
+def test_get_deployment_history():
+    deployment = {
+        "service": "orders-api",
+        "environment": "prod",
+        "version": "1.0.0",
+        "status": "healthy"
+    }
+
+    create_response = client.post(
+        "/api/deployments",
+        json=deployment
+    )
+
+    deployment_id = create_response.json()["id"]
+
+    updated_deployment = {
+        "service": "orders-api",
+        "environment": "prod",
+        "version": "1.1.0",
+        "status": "healthy"
+    }
+
+    client.put(
+        f"/api/deployments/{deployment_id}",
+        json=updated_deployment
+    )
+
+    response = client.get(
+        f"/api/deployments/{deployment_id}/history"
+    )
+
+    assert response.status_code == 200
+
+    history = response.json()
+
+    assert len(history) == 2
+    assert history[0]["version"] == "1.1.0"
+    assert history[1]["version"] == "1.0.0"

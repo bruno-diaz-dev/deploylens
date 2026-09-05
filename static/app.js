@@ -37,9 +37,29 @@ function renderDeployments(deployments) {
             <p>Status: ${deployment.status}</p>
             <p><strong>Deployed:</strong> ${createdAt}</p>
 
-            <button class="edit-button" data-id="${deployment.id}">Edit</button>
+            <div class ="deployment-actions">
+                <button
+                    class="action-button edit-button"
+                    data-id="${deployment.id}"
+                >
+                    Edit
+                </button>
 
-            <button class="delete-button" data-id="${deployment.id}">Delete</button>
+                <button
+                    class="action-button delete-button"
+                    data-id="${deployment.id}"
+                >
+                    Delete
+                </button>
+
+                <button
+                    class="action-button history-button"
+                    data-id="${deployment.id}"
+                >
+                    History
+                </button>
+            </div>
+            <div class="deployment-history" hidden></div>
         `;
 
         container.appendChild(card);
@@ -47,6 +67,8 @@ function renderDeployments(deployments) {
 
         const editButton = card.querySelector(".edit-button");
         const deleteButton = card.querySelector(".delete-button");
+        const historyButton = card.querySelector(".history-button");
+        const historyContainer = card.querySelector(".deployment-history");
 
         editButton.addEventListener("click", () => {
             editingDeploymentId = deployment.id;
@@ -72,6 +94,60 @@ function renderDeployments(deployments) {
             if (response.ok) {
                 await loadDeployments();
             }
+        });
+
+        historyButton.addEventListener("click", async () => {
+            if (!historyContainer.hidden) {
+                historyContainer.hidden = true;
+                historyButton.textContent = "History";
+                return;
+            }
+
+            const response = await fetch(
+                `/api/deployments/${deployment.id}/history`
+            );
+
+            if (!response.ok) {
+                return;
+            }
+
+            const history = await response.json();
+
+            historyContainer.innerHTML = "";
+
+            for (const entry of history) {
+                const entryDate = new Date(
+                    entry.created_at
+                ).toLocaleString();
+
+                const historyItem = document.createElement("div");
+
+                historyItem.classList.add("history-item");
+
+                historyItem.innerHTML = `
+                    <div class="history-marker"></div>
+
+                    <div class="history-content">
+                        <div class="history-header">
+                            <strong>${entry.version}</strong>
+                            <span class="history-status ${entry.status}">
+                                ${entry.status}
+                            </span>
+                        </div>
+
+                        <span class="history-environment"
+                            ${entry.environment}
+                        </span>
+
+                        <small>${entryDate}</small>
+                    </div>
+                `;
+
+                historyContainer.appendChild(historyItem);
+            }
+
+            historyContainer.hidden = false;
+            historyButton.textContent = "Hide history";
         });
     }
 }
@@ -118,9 +194,18 @@ function applyFilters() {
     renderDeployments(filteredDeployments);
 }
 
+filterButtons[0].classList.add("active");
+
 for (const button of filterButtons) {
     button.addEventListener("click", () => {
         selectedEnvironment = button.dataset.environment;
+
+        for (const filterButton of filterButtons) {
+            filterButton.classList.remove("active");
+        }
+
+        button.classList.add("active");
+
         applyFilters();
     });
 }

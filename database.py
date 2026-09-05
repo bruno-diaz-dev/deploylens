@@ -26,6 +26,18 @@ def create_database():
         )
     """)
 
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS deployment_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            deployment_id INTEGER NOT NULL,
+            service TEXT NOT NULL,
+            environment TEXT NOT NULL,
+            version TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+
     columns = connection.execute(
         "PRAGMA table_info(deployments)"
     ).fetchall()

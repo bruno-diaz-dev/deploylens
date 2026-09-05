@@ -15,30 +15,47 @@ def get_all_deployments():
 def create_deployment(deployment):
     connection = get_connection()
 
-    created_at = datetime.now(timezone.utc).isoformat()
+    try:
+        created_at = datetime.now(timezone.utc).isoformat()
 
-    cursor = connection.execute(
-        """
-        INSERT INTO deployments (
-            service,
-            environment,
-            version,
-            status,
+        cursor = connection.execute(
+            """
+            INSERT INTO deployments (
+                service,
+                environment,
+                version,
+                status,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+
+            (
+                deployment.service,
+                deployment.environment,
+                deployment.version,
+                deployment.status,
+                created_at
+            )
+        )
+
+        deployment_id = cursor.lastrowid
+
+        create_history_entry(
+            connection,
+            deployment_id,
+            deployment,
             created_at
         )
 
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (
-            deployment.service,
-            deployment.environment,
-            deployment.version,
-            deployment.status,
-            created_at
-        )
-    )
+        connection.commit()
+    
+    except Exception:
+        connection.rollback()
+        raise
 
-    connection.commit()
+    finally:
+        connection.close()
 
     new_deployment  = {
         "id": cursor.lastrowid,
@@ -56,42 +73,57 @@ def create_deployment(deployment):
 def update_deployment(deployment_id, deployment):
     connection = get_connection()
 
-    cursor = connection.execute(
-        """
-        UPDATE deployments
-        SET
-            service = ?,
-            environment = ?,
-            version = ?,
-            status = ?
-        WHERE id = ?
-        """,
-        (
-            deployment.service,
-            deployment.environment,
-            deployment.version,
-            deployment.status,
-            deployment_id
+
+    try:
+        history_created_at = datetime.now(timezone.utc).isoformat()
+
+
+        cursor = connection.execute(
+            """
+            UPDATE deployments
+            SET
+                service = ?,
+                environment = ?,
+                version = ?,
+                status = ?
+            WHERE id = ?
+            """,
+            (
+                deployment.service,
+                deployment.environment,
+                deployment.version,
+                deployment.status,
+                deployment_id
+            )
         )
-    )
 
-    connection.commit()
+        if cursor.rowcount == 0:
+            connection.rollback()
+            return None
 
-    if cursor.rowcount == 0:
+        create_history_entry(
+            connection,
+            deployment_id,
+            deployment,
+            history_created_at
+        )
+
+        connection.commit()
+
+        return {
+            "id": deployment_id,
+            "service": deployment.service,
+            "environment": deployment.environment,
+            "version": deployment.version,
+            "status": deployment.status
+        }
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
         connection.close()
-        return None
-
-    updated_deployment = {
-        "id": deployment_id,
-        "service": deployment.service,
-        "environment": deployment.environment,
-        "version": deployment.version,
-        "status": deployment.status
-    }
-
-    connection.close()
-
-    return updated_deployment
 
 def delete_deployment(deployment_id):
     connection = get_connection()
@@ -105,3 +137,48 @@ def delete_deployment(deployment_id):
     connection.close()
 
     return cursor.rowcount > 0
+
+def create_history_entry(
+    connection,
+    deployment_id,
+    deployment,
+    created_at
+):
+    connection.execute(
+        """
+        INSERT INTO deployment_history (
+            deployment_id,
+            service,
+            environment,
+            version,
+            status,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            deployment_id,
+            deployment.service,
+            deployment.environment,
+            deployment.version,
+            deployment.status,
+            created_at
+        )
+    )
+
+def get_deployment_history(deployment_id):
+    connection = get_connection()
+
+    rows = connection.execute(
+        """
+        SELECT *
+        FROM deployment_history
+        WHERE deployment_id = ?
+        ORDER BY created_at DESC
+        """,
+        (deployment_id,)
+    ).fetchall()
+
+    connection.close()
+
+    return (dict(row) for row in rows)
