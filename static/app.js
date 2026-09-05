@@ -35,7 +35,7 @@ function renderDeployments(deployments) {
             <p>Environment: ${deployment.environment}</p>
             <p>Version: ${deployment.version}</p>
             <p>Status: ${deployment.status}</p>
-            <p><strong>Deployed:</strong> ${createdAt}</p>
+            <p><strong>Registered:</strong> ${createdAt}</p>
 
             <div class ="deployment-actions">
                 <button
